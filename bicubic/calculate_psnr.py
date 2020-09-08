@@ -13,16 +13,15 @@
 # ==============================================================================
 import math
 
-import cv2
-import numpy as np
+from .calculate_mse import cal_mse
 
 
-def cal_psnr(img1, img2):
+def cal_psnr(src_img, dst_img):
     r"""Python simply calculates the maximum signal noise ratio.
 
     Args:
-        img1 (str): Address of fake high resolution image.
-        img2 (str): Address of real high resolution image.
+        src_img (np.array): Prediction image format read by OpenCV.
+        dst_img (np.array): Target image format read by OpenCV.
 
     ..math:
         10 \cdot \log _{10}\left(\frac{MAX_{I}^{2}}{MSE}\right)
@@ -30,15 +29,8 @@ def cal_psnr(img1, img2):
     Returns:
         Maximum signal to noise ratio between two images.
     """
-    prediction = cv2.imread(img1)
-    target = cv2.imread(img2)
+    mse = cal_mse(src_img, dst_img)
 
-    if prediction.shape != target.shape:
-        # Make sure the two pictures are the same size
-        target = cv2.resize(target, (prediction.shape[1], prediction.shape[0]),
-                            interpolation=cv2.INTER_CUBIC)
-
-    mse = np.mean((prediction - target) ** 2)
     if mse < 1.0e-10:
         return 100
     return 10 * math.log10(255.0 ** 2 / mse)

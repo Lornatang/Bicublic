@@ -1,6 +1,10 @@
-# Bicublic
+# Requirements
 
-## Run
+```bash
+pip install -r requirements.txt
+```
+
+# Run
 ```bash
 # Help information
 usage: test.py [-h] [--dataroot DATAROOT] [--scale-factor {2,3,4}]

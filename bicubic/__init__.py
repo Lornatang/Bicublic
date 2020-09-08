@@ -13,6 +13,9 @@
 # ==============================================================================
 from .bicubic import bibubic
 from .bicubic import bicubic_interpolation
+from .calculate_mse import cal_mse
+from .calculate_mse import cal_rmse
+from .calculate_niqe import cal_niqe
 from .calculate_psnr import cal_psnr
 from .calculate_ssim import cal_ssim
 from .calculate_ssim import create_window
@@ -21,6 +24,9 @@ from .calculate_ssim import gaussian
 __all__ = [
     "bibubic",
     "bicubic_interpolation",
+    "cal_mse",
+    "cal_rmse",
+    "cal_niqe",
     "cal_psnr",
     "cal_ssim",
     "create_window",

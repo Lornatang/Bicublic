@@ -16,7 +16,6 @@ from math import exp
 import torch
 import torch.nn.functional as F
 import torchvision.transforms as transforms
-from PIL import Image
 
 
 def gaussian(kernel_size, sigma):
@@ -56,57 +55,45 @@ def create_window(window_size, channel):
     return window
 
 
-def cal_ssim(img1, img2, window_size=11, size_average=True):
+def cal_ssim(src_img, dst_img, window_size=11, size_average=True):
     r"""The structural similarity between the two images was calculated.
 
     Args:
-        img1 (str): Address of fake high resolution image.
-        img2 (str): Address of real high resolution image.
+        src_img (np.array): Prediction image format read by OpenCV.
+        dst_img (np.array): Target image format read by OpenCV.
         window_size (int): Flat window size. Default: 11.
         size_average (int): The pixel size of the fill window.
-
-    ..math:
-        \operatorname{SSIM}(x, y)=\frac{\left(2 \mu_{x} \mu_{y}+c_{1}\right)
-        \left(\sigma_{x y}+c_{2}\right)}{\left(\mu_{x}^{2}+\mu_{y}^{2}+c_{1}
-        \right)\left(\sigma_{x}^{2}+\sigma_{y}^{2}+c_{2}\right)}
 
     Returns:
         Structural similarity of two images.
 
     """
-    prediction = Image.open(img1)
-    target = Image.open(img2)
-
-    if prediction.size != target.size:
-        # Make sure the two pictures are the same size
-        target = target.resize((prediction.size[0], prediction.size[1]))
-
     # Convert pictures to tensor format
     pil_to_tensor = transforms.ToTensor()
     with torch.no_grad():
-        prediction = pil_to_tensor(prediction).unsqueeze(0)
-        target = pil_to_tensor(target).unsqueeze(0)
+        src_img = pil_to_tensor(src_img).unsqueeze(0)
+        dst_img = pil_to_tensor(dst_img).unsqueeze(0)
 
-    (_, channel, _, _) = prediction.size()
+    (_, channel, _, _) = src_img.size()
     window = create_window(window_size, channel)
 
-    if prediction.is_cuda:
-        window = window.cuda(prediction.get_device())
-    window = window.type_as(prediction)
+    if src_img.is_cuda:
+        window = window.cuda(src_img.get_device())
+    window = window.type_as(src_img)
 
-    mu1 = F.conv2d(prediction, window, padding=window_size // 2, groups=channel)
-    mu2 = F.conv2d(target, window, padding=window_size // 2, groups=channel)
+    mu1 = F.conv2d(src_img, window, padding=window_size // 2, groups=channel)
+    mu2 = F.conv2d(dst_img, window, padding=window_size // 2, groups=channel)
 
     mu1_sq = mu1.pow(2)
     mu2_sq = mu2.pow(2)
     mu1_mu2 = mu1 * mu2
 
-    sigma1_sq = F.conv2d(prediction * prediction, window,
+    sigma1_sq = F.conv2d(src_img * src_img, window,
                          padding=window_size // 2,
                          groups=channel) - mu1_sq
-    sigma2_sq = F.conv2d(target * target, window, padding=window_size // 2,
+    sigma2_sq = F.conv2d(dst_img * dst_img, window, padding=window_size // 2,
                          groups=channel) - mu2_sq
-    sigma12 = F.conv2d(prediction * target, window, padding=window_size // 2,
+    sigma12 = F.conv2d(src_img * dst_img, window, padding=window_size // 2,
                        groups=channel) - mu1_mu2
 
     C1 = 0.01 ** 2

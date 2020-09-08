@@ -1,0 +1,6 @@
+numpy
+pillow
+sewar
+scipy
+torchvision
+opencv-python
